@@ -1,0 +1,259 @@
+<html>
+    <!--
+        Copyright 2020 Shengqiu Li https://github.com/dontpanic92/embedded-netease-music-player
+        Licensed under the MIT license.
+    -->
+    <header>
+        <meta charset="UTF-8"/>
+        <style>
+            body {
+                font-family: "Segoe UI", Helvetica, sans-serif;
+                font-size: 1rem;
+            }
+
+            #player {
+                height: 3em;
+            }
+
+            #songPicContainer {
+                float: left;
+                margin-right: 0.5em;
+            }
+
+            #songPic {
+                width: 3em;
+                height: 3em;
+            }
+
+            #infobar, #controlbar {
+                height: 50%;
+            }
+
+            #title {
+                color: #333;
+                font-size: 0.95rem;
+            }
+
+            #artist {
+                color: #666;
+                font-size: 0.75rem;
+                margin: 0.5em;
+            }
+            
+            #alias {
+                color: #666;
+                font-size: 0.7rem;
+                margin: 0.5em;
+            }
+
+            #time {
+                color: #666;
+                line-height: 50%;
+                font-size: 0.7rem;
+            }
+
+            #lyricsbar {
+                margin-top: 0.5em;
+            }
+
+            #lyric, #tlyric {
+                float: none;
+            }
+
+            #lyric {
+                color: #555;
+                font-size: 0.85rem;
+            }
+
+            #tlyric {
+                color: #666;
+                font-size: 0.8rem;
+            }
+
+            .controlbtnLink {
+                text-decoration: none;
+                vertical-align: sub;
+            }
+
+            .controlbtn {
+                width: 1em;
+                height: 1em;
+                padding-right: 0.5em;
+            }
+
+        </style>
+    </header>
+    <body>
+        <!-- Icons are from fontawesome.io -->
+        <div id="player">
+            <audio id="audio"></audio>
+            <div id="songPicContainer"><img id="songPic"/></div>
+            <div id="infobar">
+                <span id="title"></span>
+                <span id="alias"></span>
+                <span id="artist"></span>
+                <span><a id="nmLink" target="_blank" class="controlbtnLink"><img id="nmLinkImg" class="controlbtn" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDUxMiA1MTIiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgeG1sbnM6c2VyaWY9Imh0dHA6Ly93d3cuc2VyaWYuY29tLyIgc3R5bGU9ImZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2UtbWl0ZXJsaW1pdDoyOyI+CiAgICA8ZyB0cmFuc2Zvcm09Im1hdHJpeCgwLjc1LDAsMCwwLjc1LDY0LDY0KSI+CiAgICAgICAgPHBhdGggZD0iTTQzMiwzMjBMNDAwLDMyMEMzOTEuMjIzLDMyMCAzODQsMzI3LjIyMyAzODQsMzM2TDM4NCw0NDhMNjQsNDQ4TDY0LDEyOEwyMDgsMTI4QzIxNi43NzcsMTI4IDIyNCwxMjAuNzc3IDIyNCwxMTJMMjI0LDgwQzIyNCw3MS4yMjMgMjE2Ljc3Nyw2NCAyMDgsNjRMNDgsNjRDMjEuNjY4LDY0IDAsODUuNjY4IDAsMTEyTDAsNDY0QzAsNDkwLjMzMiAyMS42NjgsNTEyIDQ4LDUxMkw0MDAsNTEyQzQyNi4zMzIsNTEyIDQ0OCw0OTAuMzMyIDQ0OCw0NjRMNDQ4LDMzNkM0NDgsMzI3LjIyMyA0NDAuNzc3LDMyMCA0MzIsMzIwWk00ODgsMEwzNjAsMEMzMzguNjMsMCAzMjcuOTUsMjUuOTEgMzQzLDQxTDM3OC43Myw3Ni43M0wxMzUsMzIwLjM3QzEzMC40ODMsMzI0Ljg3MiAxMjcuOTQxLDMzMC45OTMgMTI3Ljk0MSwzMzcuMzdDMTI3Ljk0MSwzNDMuNzQ3IDEzMC40ODMsMzQ5Ljg2OCAxMzUsMzU0LjM3TDE1Ny42NywzNzdDMTYyLjE3MiwzODEuNTE3IDE2OC4yOTMsMzg0LjA1OSAxNzQuNjcsMzg0LjA1OUMxODEuMDQ3LDM4NC4wNTkgMTg3LjE2OCwzODEuNTE3IDE5MS42NywzNzdMNDM1LjI4LDEzMy4zMkw0NzEsMTY5QzQ4NiwxODQgNTEyLDE3My41IDUxMiwxNTJMNTEyLDI0QzUxMiwxMC44MzQgNTAxLjE2NiwwIDQ4OCwwWiIgc3R5bGU9ImZpbGw6cmdiKDEwMiwxMDIsMTAyKTtmaWxsLXJ1bGU6bm9uemVybzsiLz4KICAgIDwvZz4KPC9zdmc+Cg=="/></a>
+                </span>
+            </div>
+            <div id="controlbar">
+                <a id="playPause" href="javascript:playPause()" class="controlbtnLink">
+                    <img id="playImg" class="controlbtn" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDUxMiA1MTIiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgeG1sbnM6c2VyaWY9Imh0dHA6Ly93d3cuc2VyaWYuY29tLyIgc3R5bGU9ImZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2UtbWl0ZXJsaW1pdDoyOyI+CiAgICA8cGF0aCBkPSJNMzcxLjcsMjM4TDE5NS43LDEzMUMxNzkuOSwxMjIuMiAxNjAsMTMzLjUgMTYwLDE1MkwxNjAsMzYwQzE2MCwzNzguNCAxNzkuOCwzODkuOCAxOTUuNywzODFMMzcxLjcsMjgwQzM4OC4xLDI3MC45IDM4OC4xLDI0Ny4yIDM3MS43LDIzOFpNNTA0LDI1NkM1MDQsMTE5IDM5Myw4IDI1Niw4QzExOSw4IDgsMTE5IDgsMjU2QzgsMzkzIDExOSw1MDQgMjU2LDUwNEMzOTMsNTA0IDUwNCwzOTMgNTA0LDI1NlpNNTYsMjU2QzU2LDE0NS41IDE0NS41LDU2IDI1Niw1NkMzNjYuNSw1NiA0NTYsMTQ1LjUgNDU2LDI1NkM0NTYsMzY2LjUgMzY2LjUsNDU2IDI1Niw0NTZDMTQ1LjUsNDU2IDU2LDM2Ni41IDU2LDI1NloiIHN0eWxlPSJmaWxsOnJnYig1MSw1MSw1MSk7ZmlsbC1ydWxlOm5vbnplcm87Ii8+Cjwvc3ZnPgo="/>
+                    <img id="pauseImg" style="display: none;" class="controlbtn" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+Cjxzdmcgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDUxMiA1MTIiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgeG1sbnM6c2VyaWY9Imh0dHA6Ly93d3cuc2VyaWYuY29tLyIgc3R5bGU9ImZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2UtbWl0ZXJsaW1pdDoyOyI+CiAgICA8cGF0aCBkPSJNMjU2LDhDMTE5LDggOCwxMTkgOCwyNTZDOCwzOTMgMTE5LDUwNCAyNTYsNTA0QzM5Myw1MDQgNTA0LDM5MyA1MDQsMjU2QzUwNCwxMTkgMzkzLDggMjU2LDhaTTI1Niw0NTZDMTQ1LjUsNDU2IDU2LDM2Ni41IDU2LDI1NkM1NiwxNDUuNSAxNDUuNSw1NiAyNTYsNTZDMzY2LjUsNTYgNDU2LDE0NS41IDQ1NiwyNTZDNDU2LDM2Ni41IDM2Ni41LDQ1NiAyNTYsNDU2Wk0zNTIsMTc2TDM1MiwzMzZDMzUyLDM0NC44IDM0NC44LDM1MiAzMzYsMzUyTDI4OCwzNTJDMjc5LjIsMzUyIDI3MiwzNDQuOCAyNzIsMzM2TDI3MiwxNzZDMjcyLDE2Ny4yIDI3OS4yLDE2MCAyODgsMTYwTDMzNiwxNjBDMzQ0LjgsMTYwIDM1MiwxNjcuMiAzNTIsMTc2Wk0yNDAsMTc2TDI0MCwzMzZDMjQwLDM0NC44IDIzMi44LDM1MiAyMjQsMzUyTDE3NiwzNTJDMTY3LjIsMzUyIDE2MCwzNDQuOCAxNjAsMzM2TDE2MCwxNzZDMTYwLDE2Ny4yIDE2Ny4yLDE2MCAxNzYsMTYwTDIyNCwxNjBDMjMyLjgsMTYwIDI0MCwxNjcuMiAyNDAsMTc2WiIgc3R5bGU9ImZpbGw6cmdiKDUxLDUxLDUxKTtmaWxsLXJ1bGU6bm9uemVybzsiLz4KPC9zdmc+Cg=="/>
+                </a>
+                <span id="time"></span>
+            </div>
+            <div id="lyricsbar">
+                <div id="lyric"></div>
+                <div id="tlyric"></div>
+            </div>
+        </div>
+        <script text="javascript">
+            function get(url, callback) {
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                        callback(this.responseText);
+                    }
+                };
+                xhr.open("GET", url);
+                xhr.send();
+            }
+
+            function formatSeconds(seconds) {
+                var minutes = Math.floor(seconds / 60);
+                var secondsRemain = Math.floor(seconds % 60);
+                return String(minutes).padStart(2, "0") + ":" + String(secondsRemain).padStart(2, "0");
+            }
+
+            var detailsNode = document.getElementById("details");
+            var audioNode = document.getElementById("audio");
+            var songPicNode = document.getElementById("songPic");
+            var titleNode = document.getElementById("title");
+            var artistNode = document.getElementById("artist");
+            var aliasNode = document.getElementById("alias");
+            var timeNode = document.getElementById("time");
+            var lyricNode = document.getElementById("lyric");
+            var tlyricNode = document.getElementById("tlyric");
+            var nmLinkNode = document.getElementById("nmLink");
+            var playImgNode = document.getElementById("playImg");
+            var pauseImgNode = document.getElementById("pauseImg");
+
+            var lyrics;
+            var tlyrics;
+
+            function retrieveSong(id) {
+                get(
+                    "https://api.imjad.cn/cloudmusic/?type=song&br=128000&id=" + id,
+                    (data) => {
+                        createPlayer(JSON.parse(data).data[0]);
+                    });
+            }
+
+            function retrieveDetails(id) {
+                get(
+                    "https://api.imjad.cn/cloudmusic/?type=detail&id=" + id,
+                    (data) => {
+                        setDetails(JSON.parse(data).songs[0]);
+                    });
+            }
+
+            function retrieveLyric(id) {
+                get(
+                    "https://api.imjad.cn/cloudmusic/?type=lyric&id=" + id,
+                    (data) => {
+                        var lyricsText = JSON.parse(data);
+                        lyrics = parseLyrics(lyricsText.lrc.lyric);
+                        tlyrics = parseLyrics(lyricsText.tlyric.lyric)
+                    });
+            }
+
+            function createPlayer(song) {
+                audioNode.src = song.url;
+                audioNode.loop = "loop";
+
+                var body = document.getElementsByTagName("body")[0];
+                body.appendChild(audioNode);
+            }
+
+            function setDetails(details) {
+                titleNode.innerHTML = details.name;
+                artistNode.innerHTML = " - " + details.ar[0].name;
+                if (details.alia[0]) {
+                    aliasNode.innerHTML = "(" + details.alia[0] + ")";
+                }
+
+                songPicNode.src = details.al.picUrl;
+            }
+
+            function parseLyrics(lyricsText) {
+                var lyrics = [];
+                var lines = lyricsText.split("\n");
+                for (var i = 0; i < lines.length; i++) {
+                    var arr = /^\[([\d:.]*)]/g.exec(lines[i]);
+                    if (arr == null) {
+                        continue;
+                    }
+
+                    var text = lines[i].replace(arr[0], "");
+                    var time = arr[1].split(":");
+                    time.reverse();
+
+                    var seconds = 0;
+                    var mutiplier = 1;
+                    for (var j = 0; j < 3; j++) {
+                        if (time[j] != undefined) {
+                            seconds += parseFloat(time[j]) * mutiplier;
+                            mutiplier *= 60;
+                        }
+                    }
+
+                    lyrics.push({seconds, text});
+                }
+
+                lyrics.reverse();
+                return lyrics;
+            }
+
+            function updateLyrics(currentTime, lyricsNode, lyrics) {
+                for (var i = 0; i < lyrics.length; i++) {
+                    if (lyrics[i].seconds < currentTime) {
+                        lyricsNode.innerHTML = lyrics[i].text;
+                        break;
+                    }
+                }
+            }
+
+            function playPause() {
+                if (audioNode.paused) {
+                    audioNode.play();
+                    playImgNode.style.display = "none";
+                    pauseImgNode.style.display = "inline";
+                } else {
+                    audioNode.pause();
+                    playImgNode.style.display = "inline";
+                    pauseImgNode.style.display = "none";
+                }
+            }
+
+            audioNode.addEventListener(
+                "timeupdate",
+                () => {
+                    time.innerHTML = formatSeconds(audioNode.currentTime) + " / " + formatSeconds(audioNode.duration);
+                    updateLyrics(audioNode.currentTime, lyricNode, lyrics);
+                    updateLyrics(audioNode.currentTime, tlyricNode, tlyrics);
+                });
+
+            function initialize(id) {
+                retrieveSong(id);
+                retrieveDetails(id);
+                retrieveLyric(id);
+                nmLinkNode.href = "http://music.163.com/song?id=" + id;
+            }
+
+            var id = window.location.search.substring(1);
+            if (id != undefined && id != "") {
+                initialize(id);
+            }
+        </script>
+    </body>
+</html>
