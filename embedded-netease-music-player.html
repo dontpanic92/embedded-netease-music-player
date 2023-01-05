@@ -143,7 +143,7 @@
 
             function retrieveSong(id) {
                 get(
-                    "https://api.imjad.cn/cloudmusic/?type=song&br=128000&id=" + id,
+                    "https://nmapi.dontpanic.fun/song/url?id=" + id,
                     (data) => {
                         createPlayer(JSON.parse(data).data[0]);
                     });
@@ -151,7 +151,7 @@
 
             function retrieveDetails(id) {
                 get(
-                    "https://api.imjad.cn/cloudmusic/?type=detail&id=" + id,
+                    "https://nmapi.dontpanic.fun/song/detail?ids=" + id,
                     (data) => {
                         setDetails(JSON.parse(data).songs[0]);
                     });
@@ -159,7 +159,7 @@
 
             function retrieveLyric(id) {
                 get(
-                    "https://api.imjad.cn/cloudmusic/?type=lyric&id=" + id,
+                    "https://nmapi.dontpanic.fun/lyric?id=" + id,
                     (data) => {
                         var lyricsText = JSON.parse(data);
                         lyrics = parseLyrics(lyricsText.lrc.lyric);
